@@ -1,0 +1,58 @@
+[
+  {
+    "test_name": "test_schema_contract",
+    "passed": true,
+    "message": "All rows satisfy schema contract.",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_no_nulls_integrity",
+    "passed": true,
+    "message": "Zero nulls in ['transaction_id', 'customer_id'].",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_primary_key_uniqueness",
+    "passed": true,
+    "message": "Primary key 'transaction_id' is 100% unique.",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_range_age",
+    "passed": true,
+    "message": "All values in 'age' within [18, 100].",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_range_amount_mmk",
+    "passed": true,
+    "message": "All values in 'amount_mmk' within [1.0, 100000000.0].",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_enum_township",
+    "passed": true,
+    "message": "All values in 'township' match valid taxonomy.",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_format_email",
+    "passed": true,
+    "message": "All values in 'email' conform to Email format.",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_format_phone",
+    "passed": true,
+    "message": "All values in 'phone' conform to Phone format.",
+    "violation_count": 0,
+    "sample_violations": []
+  }
+]

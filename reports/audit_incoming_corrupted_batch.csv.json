@@ -1,0 +1,204 @@
+[
+  {
+    "test_name": "test_schema_contract",
+    "passed": true,
+    "message": "All rows satisfy schema contract.",
+    "violation_count": 0,
+    "sample_violations": []
+  },
+  {
+    "test_name": "test_no_nulls_integrity",
+    "passed": false,
+    "message": "Found 6 null violations in mandatory columns.",
+    "violation_count": 6,
+    "sample_violations": [
+      {
+        "row": 10,
+        "column": "customer_id",
+        "error": "Null or empty value in mandatory column"
+      },
+      {
+        "row": 11,
+        "column": "customer_id",
+        "error": "Null or empty value in mandatory column"
+      },
+      {
+        "row": 12,
+        "column": "customer_id",
+        "error": "Null or empty value in mandatory column"
+      },
+      {
+        "row": 13,
+        "column": "customer_id",
+        "error": "Null or empty value in mandatory column"
+      },
+      {
+        "row": 14,
+        "column": "customer_id",
+        "error": "Null or empty value in mandatory column"
+      }
+    ]
+  },
+  {
+    "test_name": "test_primary_key_uniqueness",
+    "passed": false,
+    "message": "Found 1 duplicate primary key collisions.",
+    "violation_count": 1,
+    "sample_violations": [
+      {
+        "row": 40,
+        "column": "transaction_id",
+        "value": "TXN-001039",
+        "error": "Duplicate primary key collision (first seen at row 39)"
+      }
+    ]
+  },
+  {
+    "test_name": "test_range_age",
+    "passed": false,
+    "message": "Found 4 boundary violations.",
+    "violation_count": 4,
+    "sample_violations": [
+      {
+        "row": 25,
+        "column": "age",
+        "value": 0.0,
+        "error": "Value 0.0 outside acceptable boundary [18, 100]"
+      },
+      {
+        "row": 26,
+        "column": "age",
+        "value": 145.0,
+        "error": "Value 145.0 outside acceptable boundary [18, 100]"
+      },
+      {
+        "row": 27,
+        "column": "age",
+        "value": -5.0,
+        "error": "Value -5.0 outside acceptable boundary [18, 100]"
+      },
+      {
+        "row": 28,
+        "column": "age",
+        "value": 145.0,
+        "error": "Value 145.0 outside acceptable boundary [18, 100]"
+      }
+    ]
+  },
+  {
+    "test_name": "test_range_amount_mmk",
+    "passed": false,
+    "message": "Found 3 boundary violations.",
+    "violation_count": 3,
+    "sample_violations": [
+      {
+        "row": 60,
+        "column": "amount_mmk",
+        "value": -150000.0,
+        "error": "Value -150000.0 outside acceptable boundary [1.0, 100000000.0]"
+      },
+      {
+        "row": 61,
+        "column": "amount_mmk",
+        "value": -150000.0,
+        "error": "Value -150000.0 outside acceptable boundary [1.0, 100000000.0]"
+      },
+      {
+        "row": 62,
+        "column": "amount_mmk",
+        "value": -150000.0,
+        "error": "Value -150000.0 outside acceptable boundary [1.0, 100000000.0]"
+      }
+    ]
+  },
+  {
+    "test_name": "test_enum_township",
+    "passed": false,
+    "message": "Found 3 category enum violations.",
+    "violation_count": 3,
+    "sample_violations": [
+      {
+        "row": 80,
+        "column": "township",
+        "value": "Unknown_Galaxy_Zone",
+        "error": "Unrecognized category 'Unknown_Galaxy_Zone'. Expected one of ['Hinthada', 'Zalun', 'Danubyu', 'Myanaung', 'Kyangin', 'Ingapu']"
+      },
+      {
+        "row": 81,
+        "column": "township",
+        "value": "Unknown_Galaxy_Zone",
+        "error": "Unrecognized category 'Unknown_Galaxy_Zone'. Expected one of ['Hinthada', 'Zalun', 'Danubyu', 'Myanaung', 'Kyangin', 'Ingapu']"
+      },
+      {
+        "row": 82,
+        "column": "township",
+        "value": "Unknown_Galaxy_Zone",
+        "error": "Unrecognized category 'Unknown_Galaxy_Zone'. Expected one of ['Hinthada', 'Zalun', 'Danubyu', 'Myanaung', 'Kyangin', 'Ingapu']"
+      }
+    ]
+  },
+  {
+    "test_name": "test_format_email",
+    "passed": false,
+    "message": "Found 4 format violations.",
+    "violation_count": 4,
+    "sample_violations": [
+      {
+        "row": 110,
+        "column": "email",
+        "value": "not_an_email_at_all",
+        "error": "Failed Email format pattern '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'"
+      },
+      {
+        "row": 111,
+        "column": "email",
+        "value": "not_an_email_at_all",
+        "error": "Failed Email format pattern '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'"
+      },
+      {
+        "row": 112,
+        "column": "email",
+        "value": "not_an_email_at_all",
+        "error": "Failed Email format pattern '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'"
+      },
+      {
+        "row": 113,
+        "column": "email",
+        "value": "not_an_email_at_all",
+        "error": "Failed Email format pattern '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'"
+      }
+    ]
+  },
+  {
+    "test_name": "test_format_phone",
+    "passed": false,
+    "message": "Found 4 format violations.",
+    "violation_count": 4,
+    "sample_violations": [
+      {
+        "row": 110,
+        "column": "phone",
+        "value": "123-BAD-PHONE",
+        "error": "Failed Phone format pattern '^\\+959\\d{8,9}$'"
+      },
+      {
+        "row": 111,
+        "column": "phone",
+        "value": "123-BAD-PHONE",
+        "error": "Failed Phone format pattern '^\\+959\\d{8,9}$'"
+      },
+      {
+        "row": 112,
+        "column": "phone",
+        "value": "123-BAD-PHONE",
+        "error": "Failed Phone format pattern '^\\+959\\d{8,9}$'"
+      },
+      {
+        "row": 113,
+        "column": "phone",
+        "value": "123-BAD-PHONE",
+        "error": "Failed Phone format pattern '^\\+959\\d{8,9}$'"
+      }
+    ]
+  }
+]
