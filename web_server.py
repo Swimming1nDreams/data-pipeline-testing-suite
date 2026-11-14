@@ -1,7 +1,7 @@
 """
 DataSentinel QA - Advanced Web Server & REST API Engine
 Supports Data Profiling, Custom Rule Engineering, SQL Sandbox,
-Auto-Sanitization, and Pytest execution.
+Auto-Sanitization, Dynamic Contracts, Excel (.xlsx) Export & Ingestion, and Pytest execution.
 """
 
 import os
@@ -9,6 +9,7 @@ import sys
 import json
 import csv
 import time
+import base64
 import sqlite3
 import subprocess
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -24,6 +25,9 @@ from core.pipeline import ETLPipeline, SCHEMA_CONTRACT, VALID_TOWNSHIPS, EMAIL_R
 from core.profiler import DataProfiler
 from core.sanitizer import DataSanitizer
 from core.sql_sandbox import SQLSandbox
+from core.excel_io import ExcelIO
+from core.contract import DataContract
+from core.normalizer import DataNormalizer
 
 class DataSentinelHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -50,6 +54,12 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             self.handle_quarantine_records()
         elif path == "/api/distribution-data":
             self.handle_distribution_data()
+        elif path == "/api/infer-contract":
+            self.handle_infer_contract(query)
+        elif path == "/api/export-excel":
+            self.handle_export_excel(query)
+        elif path == "/api/list-files":
+            self.handle_list_files()
         elif path == "/" or path == "/index.html":
             self.serve_file(os.path.join(PUBLIC_DIR, "index.html"), "text/html")
         else:
@@ -59,10 +69,14 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/upload-audit":
             self.handle_upload_audit()
+        elif parsed.path == "/api/upload-binary":
+            self.handle_upload_binary()
         elif parsed.path == "/api/query-sql":
             self.handle_sql_query()
         elif parsed.path == "/api/custom-rules":
             self.handle_save_rule()
+        elif parsed.path == "/api/validate-contract":
+            self.handle_validate_contract()
         else:
             self.send_response(404)
             self.end_headers()
@@ -71,8 +85,19 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         filepath = os.path.join(DATA_DIR, filename)
         if not os.path.exists(filepath):
             return []
+        if filename.lower().endswith(".xlsx"):
+            return ExcelIO.read_excel(filepath)
         with open(filepath, "r", encoding="utf-8") as f:
             return list(csv.DictReader(f))
+
+    def handle_list_files(self):
+        files = []
+        if os.path.exists(DATA_DIR):
+            for f in os.listdir(DATA_DIR):
+                if f.endswith((".csv", ".xlsx")) and not f.startswith("."):
+                    size_kb = round(os.path.getsize(os.path.join(DATA_DIR, f)) / 1024, 1)
+                    files.append({"name": f, "size_kb": size_kb})
+        self.send_json_response({"files": files})
 
     def handle_run_pytest(self):
         t0 = time.time()
@@ -126,7 +151,7 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
                     elif rule_type == "enum":
                         allowed = [x.strip() for x in cr["values"].split(",")]
                         tests.append((f"Custom Enum [{col}]", lambda c=col, a=allowed: DataValidator.assert_category_enum(rows, c, a)))
-            except Exception as e:
+            except Exception:
                 pass
 
         results = []
@@ -159,10 +184,10 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
     def handle_sanitize(self, query):
         filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
         rows = self._get_dataset_rows(filename)
-        clean_rows, quarantined = DataSanitizer.sanitize_dataset(rows)
+        clean_rows, quarantined = DataSanitizer.sanitize_dataset(rows, mask_pii=True)
         
         # Save cleaned file for user download
-        clean_filename = f"repaired_{filename}"
+        clean_filename = f"repaired_{os.path.splitext(filename)[0]}.csv"
         clean_path = os.path.join(DATA_DIR, clean_filename)
         if clean_rows:
             with open(clean_path, "w", newline="", encoding="utf-8") as f:
@@ -179,6 +204,54 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             "sample_quarantined": quarantined[:5]
         })
 
+    def handle_infer_contract(self, query):
+        filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
+        rows = self._get_dataset_rows(filename)
+        contract = DataContract.infer_contract(rows, dataset_name=filename)
+        self.send_json_response(contract)
+
+    def handle_validate_contract(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = json.loads(self.rfile.read(length).decode("utf-8"))
+        filename = body.get("filename", "incoming_corrupted_batch.csv")
+        contract = body.get("contract")
+
+        rows = self._get_dataset_rows(filename)
+        if not rows:
+            self.send_json_response({"error": "File not found or empty"}, 404)
+            return
+
+        results = DataContract.validate(rows, contract)
+        formatted = [r.to_dict() for r in results]
+
+        self.send_json_response({
+            "filename": filename,
+            "total_rows": len(rows),
+            "results": formatted,
+            "passed_count": sum(1 for r in formatted if r["passed"]),
+            "failed_count": sum(1 for r in formatted if not r["passed"]),
+            "validated_at": time.strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    def handle_export_excel(self, query):
+        filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
+        rows = self._get_dataset_rows(filename)
+        if not rows:
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        clean_rows, quarantined = DataSanitizer.sanitize_dataset(rows, mask_pii=False)
+        xlsx_bytes = ExcelIO.export_excel_bytes(clean_rows, quarantined)
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        self.send_header("Content-Disposition", f'attachment; filename="DataSentinel_Audit_{os.path.splitext(filename)[0]}.xlsx"')
+        self.send_header("Content-Length", str(len(xlsx_bytes)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(xlsx_bytes)
+
     def handle_sql_query(self):
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length).decode("utf-8"))
@@ -193,8 +266,8 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         if not os.path.exists(RULES_FILE):
             self.send_json_response([])
             return
-        with open(RULES_FILE, "r", encoding="utf-8") as f:
-            self.send_json_response(json.load(f))
+        with open(RULES_FILE, "r", encoding="utf-8") as rf:
+            self.send_json_response(json.load(rf))
 
     def handle_save_rule(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -251,21 +324,21 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         self.send_json_response({"records": records, "total": len(records)})
 
     def handle_distribution_data(self):
-        base_path = os.path.join(DATA_DIR, "baseline_clean.csv")
-        batch_path = os.path.join(DATA_DIR, "incoming_corrupted_batch.csv")
+        base_rows = self._get_dataset_rows("baseline_clean.csv")
+        batch_rows = self._get_dataset_rows("incoming_corrupted_batch.csv")
 
-        def get_amounts(path):
-            if not os.path.exists(path): return []
+        def get_amounts(rows):
             res = []
-            with open(path, "r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for r in reader:
-                    try: res.append(float(r["amount_mmk"]))
-                    except: pass
+            for r in rows:
+                try:
+                    val = float(DataNormalizer.normalize_myanmar_digits(str(r.get("amount_mmk", ""))))
+                    res.append(val)
+                except:
+                    pass
             return res
 
-        base_amt = get_amounts(base_path)
-        batch_amt = get_amounts(batch_path)
+        base_amt = get_amounts(base_rows)
+        batch_amt = get_amounts(batch_rows)
 
         bins = ["< 100K", "100K-300K", "300K-500K", "500K-750K", "750K-1M", "> 1M (Outlier)"]
         
@@ -293,6 +366,27 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             "batch_mean": batch_mean,
             "base_total": len(base_amt),
             "batch_total": len(batch_amt)
+        })
+
+    def handle_upload_binary(self):
+        """Accepts base64 encoded CSV or XLSX file and writes to data/."""
+        length = int(self.headers.get("Content-Length", 0))
+        body = json.loads(self.rfile.read(length).decode("utf-8"))
+        filename = body.get("filename", "uploaded_data.csv")
+        b64data = body.get("base64", "")
+
+        file_bytes = base64.b64decode(b64data)
+        safe_path = os.path.join(DATA_DIR, os.path.basename(filename))
+        with open(safe_path, "wb") as f:
+            f.write(file_bytes)
+
+        # Profile and return rows
+        rows = self._get_dataset_rows(os.path.basename(filename))
+        self.send_json_response({
+            "status": "success",
+            "filename": os.path.basename(filename),
+            "total_rows": len(rows),
+            "message": f"Successfully loaded {len(rows)} records into QA engine."
         })
 
     def handle_upload_audit(self):

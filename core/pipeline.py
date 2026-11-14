@@ -1,7 +1,7 @@
 """
 DataSentinel QA - ETL Execution Pipeline with Quarantine Mechanism
-Processes raw CSV input, validates every record, commits clean records to SQLite,
-and quarantines dirty records into a dead-letter audit log.
+Processes raw CSV or Excel (.xlsx) inputs, validates every record,
+commits clean records to SQLite data warehouse, and quarantines dirty records into a dead-letter audit log.
 """
 
 import os
@@ -9,6 +9,7 @@ import csv
 import sqlite3
 from typing import Dict, List, Tuple, Any
 from core.validator import DataValidator
+from core.excel_io import ExcelIO
 
 SCHEMA_CONTRACT = {
     "transaction_id": str,
@@ -72,16 +73,19 @@ class ETLPipeline:
         conn.commit()
         conn.close()
 
-    def process_batch(self, csv_filepath: str) -> Dict[str, Any]:
-        """Ingests a CSV file, runs row-level validation, and separates clean from quarantined data."""
-        if not os.path.exists(csv_filepath):
-            raise FileNotFoundError(f"Dataset not found at {csv_filepath}")
+    def process_batch(self, filepath: str) -> Dict[str, Any]:
+        """Ingests a CSV or Excel file, runs row-level validation, and separates clean from quarantined data."""
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Dataset not found at {filepath}")
 
         rows = []
-        with open(csv_filepath, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for r in reader:
-                rows.append(r)
+        if filepath.lower().endswith(".xlsx"):
+            rows = ExcelIO.read_excel(filepath)
+        else:
+            with open(filepath, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    rows.append(r)
 
         clean_records = []
         quarantined_records = []
@@ -106,7 +110,7 @@ class ETLPipeline:
                 age = int(row.get("age", 0))
                 if age < 18 or age > 100:
                     errors.append(("age", f"Age {age} outside allowable range [18, 100]"))
-            except ValueError:
+            except (ValueError, TypeError):
                 errors.append(("age", "Invalid integer for age"))
 
             # Check 4: Amount bounds
@@ -114,7 +118,7 @@ class ETLPipeline:
                 amount = float(row.get("amount_mmk", 0.0))
                 if amount <= 0:
                     errors.append(("amount_mmk", f"Non-positive transaction amount: {amount}"))
-            except ValueError:
+            except (ValueError, TypeError):
                 errors.append(("amount_mmk", "Invalid float for amount"))
 
             # Check 5: Township Enum
@@ -128,14 +132,14 @@ class ETLPipeline:
                 clean_records.append((
                     row["transaction_id"],
                     row["customer_id"],
-                    row["timestamp"],
-                    row["township"],
+                    row.get("timestamp", ""),
+                    row.get("township", ""),
                     int(row["age"]),
                     float(row["amount_mmk"]),
-                    row["payment_type"],
-                    row["email"],
-                    row["phone"],
-                    row["status"]
+                    row.get("payment_type", ""),
+                    row.get("email", ""),
+                    row.get("phone", ""),
+                    row.get("status", "")
                 ))
 
         # Commit to DB
