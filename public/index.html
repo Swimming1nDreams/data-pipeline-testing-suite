@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataSentinel QA — Enterprise Pipeline Testing & Data Drift Suite</title>
+  <title>DataSentinel QA Studio — Enterprise Data Testing & Quality Engineering</title>
   
   <!-- FontAwesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Chart.js for Statistical Distributions -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -17,14 +17,16 @@
       --bg-dark: #070d19;
       --panel-bg: rgba(15, 23, 42, 0.75);
       --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover: rgba(255, 255, 255, 0.12);
+      --card-hover: rgba(255, 255, 255, 0.14);
       --primary: #3b82f6;
+      --primary-hover: #2563eb;
       --primary-glow: rgba(59, 130, 246, 0.25);
       --success: #10b981;
       --success-glow: rgba(16, 185, 129, 0.2);
       --danger: #ef4444;
       --danger-glow: rgba(239, 68, 68, 0.2);
       --warning: #f59e0b;
+      --purple: #8b5cf6;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -36,7 +38,7 @@
       background: radial-gradient(circle at 50% 0%, #111e3b 0%, #070d19 75%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 24px 32px;
+      padding: 20px 28px;
       line-height: 1.5;
     }
 
@@ -45,9 +47,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 20px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--card-border);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .brand-area {
       display: flex;
@@ -76,7 +78,6 @@
       font-size: 12.5px;
       color: var(--text-muted);
     }
-
     .header-actions {
       display: flex;
       align-items: center;
@@ -101,21 +102,19 @@
       color: #34d399;
     }
 
-    /* Metrics Grid */
+    /* Metrics Strip */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: 14px;
+      margin-bottom: 20px;
     }
     .metric-card {
       background: var(--panel-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 18px 20px;
-      position: relative;
-      overflow: hidden;
+      padding: 16px 18px;
       transition: transform 0.2s, border-color 0.2s;
     }
     .metric-card:hover {
@@ -126,15 +125,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .metric-value {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       color: #fff;
       display: flex;
@@ -142,7 +141,7 @@
       gap: 8px;
     }
     .metric-sub {
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-muted);
       margin-top: 4px;
       display: flex;
@@ -150,28 +149,29 @@
       gap: 5px;
     }
 
-    /* Tabs Navigation */
+    /* Navigation Tabs */
     .tabs-bar {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
       background: rgba(15, 23, 42, 0.6);
       padding: 6px;
       border-radius: 10px;
       border: 1px solid var(--card-border);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .tab-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 9px 18px;
-      font-size: 13px;
+      padding: 8px 16px;
+      font-size: 12.5px;
       font-weight: 600;
       border-radius: 7px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       transition: all 0.2s;
     }
     .tab-btn:hover {
@@ -184,31 +184,31 @@
       box-shadow: 0 0 16px var(--primary-glow);
     }
 
-    /* Action Controls Bar */
+    /* Controls Bar */
     .controls-card {
       background: var(--panel-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       gap: 16px;
     }
     .select-wrapper {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     select {
       background: #0f172a;
       border: 1px solid var(--card-border);
       color: #fff;
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 500;
       outline: none;
       cursor: pointer;
@@ -217,14 +217,14 @@
       background: var(--primary);
       color: white;
       border: none;
-      padding: 9px 18px;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
       transition: all 0.2s;
     }
     button.btn-action:hover {
@@ -239,45 +239,48 @@
     button.btn-secondary:hover {
       background: rgba(255, 255, 255, 0.12);
     }
-
-    /* Content Panels */
-    .tab-content {
-      display: none;
+    button.btn-success {
+      background: #10b981;
     }
-    .tab-content.active {
-      display: block;
+    button.btn-success:hover {
+      background: #059669;
+      box-shadow: 0 0 16px var(--success-glow);
     }
 
-    /* Matrix Table Layout */
+    /* Tab Content Containers */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Layout Splits */
     .layout-split {
       display: grid;
       grid-template-columns: 1.5fr 1fr;
-      gap: 20px;
+      gap: 18px;
     }
     .panel {
       background: var(--panel-bg);
       backdrop-filter: blur(12px);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px 20px;
     }
     .panel-title {
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    /* Table Styling */
+    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12.5px;
     }
     th, td {
-      padding: 12px 14px;
+      padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -293,17 +296,17 @@
       transition: background 0.15s;
     }
     tr.clickable-row:hover {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
     }
 
-    /* Badges / Status Pills */
+    /* Status Pills */
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 9px;
+      padding: 3px 8px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
     }
     .pill-pass {
@@ -317,13 +320,48 @@
       color: #f87171;
     }
 
-    /* Drift Box */
-    .drift-alert-card {
-      background: rgba(15, 23, 42, 0.9);
+    /* Profiler Cards Grid */
+    .profiler-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+    }
+    .prof-card {
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--card-border);
       border-radius: 10px;
-      padding: 16px;
-      margin-top: 18px;
+      padding: 14px;
+      font-size: 12px;
+    }
+    .prof-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #60a5fa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .prof-stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* SQL Editor Area */
+    .sql-box {
+      width: 100%;
+      height: 120px;
+      background: #040814;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 12px;
+      outline: none;
+      margin-bottom: 12px;
     }
 
     /* Terminal Console */
@@ -348,13 +386,13 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       color: #38bdf8;
-      height: 380px;
+      height: 360px;
       overflow-y: auto;
       white-space: pre-wrap;
       line-height: 1.5;
     }
 
-    /* Modal Overlay */
+    /* Modals */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -365,9 +403,7 @@
       align-items: center;
       justify-content: center;
     }
-    .modal-overlay.active {
-      display: flex;
-    }
+    .modal-overlay.active { display: flex; }
     .modal-card {
       background: #0f172a;
       border: 1px solid #334155;
@@ -383,20 +419,15 @@
       align-items: center;
       margin-bottom: 16px;
     }
-    .modal-header h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: #fff;
-    }
     .btn-close {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
     }
 
-    /* Toast Notification */
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -422,15 +453,15 @@
       <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
       <div class="brand-title">
         <h1>DataSentinel QA Studio</h1>
-        <p>Enterprise Data Pipeline Testing, Dead-Letter Quarantine & Drift Analytics</p>
+        <p>Enterprise Data Quality Engineering, Automated Pytest Suite & Profiling Platform</p>
       </div>
     </div>
     
     <div class="header-actions">
-      <span class="chip chip-green"><i class="fa-solid fa-bolt"></i> Live Connected</span>
+      <span class="chip chip-green"><i class="fa-solid fa-bolt"></i> Desktop Live</span>
       <span class="chip"><i class="fa-brands fa-python"></i> Python 3.13</span>
-      <span class="chip"><i class="fa-solid fa-vial"></i> Pytest 9.2</span>
-      <button class="btn-action btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="window.print()">
+      <span class="chip"><i class="fa-solid fa-vial"></i> Pytest 9.2 (91% Cov)</span>
+      <button class="btn-action btn-secondary" style="padding: 5px 12px; font-size: 11.5px;" onclick="window.print()">
         <i class="fa-solid fa-print"></i> Print Factsheet
       </button>
     </div>
@@ -440,7 +471,7 @@
   <div class="metrics-grid">
     <div class="metric-card">
       <div class="metric-header">
-        <span>Automated Pytest Suite</span>
+        <span>Pytest Automated Suite</span>
         <i class="fa-solid fa-vial-circle-check" style="color: #34d399;"></i>
       </div>
       <div class="metric-value" id="val-tests" style="color: #34d399;">14 / 14 Passed</div>
@@ -458,11 +489,11 @@
 
     <div class="metric-card">
       <div class="metric-header">
-        <span>Test Code Coverage</span>
+        <span>Code Coverage</span>
         <i class="fa-solid fa-chart-pie" style="color: #60a5fa;"></i>
       </div>
       <div class="metric-value" style="color: #60a5fa;">91%</div>
-      <div class="metric-sub">core/validator.py & pipeline.py</div>
+      <div class="metric-sub">validator.py & pipeline.py</div>
     </div>
 
     <div class="metric-card">
@@ -470,32 +501,35 @@
         <span>Dead-Letter Quarantine</span>
         <i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i>
       </div>
-      <div class="metric-value" id="val-quarantine" style="color: #f87171;">24 Rows</div>
+      <div class="metric-value" id="val-quarantine" style="color: #f87171;">14 Rows</div>
       <div class="metric-sub">Auto-isolated without pipeline crash</div>
     </div>
   </div>
 
   <!-- Navigation Tabs -->
   <div class="tabs-bar">
-    <button class="tab-btn active" onclick="switchTab('tab-matrix')"><i class="fa-solid fa-list-check"></i> Assertions Matrix</button>
-    <button class="tab-btn" onclick="switchTab('tab-drift')"><i class="fa-solid fa-chart-line"></i> Statistical Drift Analytics</button>
+    <button class="tab-btn active" onclick="switchTab('tab-matrix')"><i class="fa-solid fa-list-check"></i> Quality Assertions</button>
+    <button class="tab-btn" onclick="switchTab('tab-profiler')"><i class="fa-solid fa-magnifying-glass-chart"></i> Data Profiler (EDA)</button>
+    <button class="tab-btn" onclick="switchTab('tab-drift')"><i class="fa-solid fa-chart-line"></i> Statistical Drift</button>
+    <button class="tab-btn" onclick="switchTab('tab-rules')"><i class="fa-solid fa-sliders"></i> Visual Rule Builder</button>
+    <button class="tab-btn" onclick="switchTab('tab-sql')"><i class="fa-solid fa-database"></i> SQL Query Sandbox</button>
+    <button class="tab-btn" onclick="switchTab('tab-sanitize')"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Sanitizer & Repair</button>
     <button class="tab-btn" onclick="switchTab('tab-quarantine')"><i class="fa-solid fa-box-archive"></i> Quarantine Queue</button>
-    <button class="tab-btn" onclick="switchTab('tab-custom')"><i class="fa-solid fa-file-arrow-up"></i> Live CSV Upload & Audit</button>
-    <button class="tab-btn" onclick="switchTab('tab-terminal')"><i class="fa-solid fa-terminal"></i> Pytest Terminal Logs</button>
+    <button class="tab-btn" onclick="switchTab('tab-terminal')"><i class="fa-solid fa-terminal"></i> Terminal Logs</button>
   </div>
 
   <!-- Global Action Controls -->
   <div class="controls-card">
     <div class="select-wrapper">
-      <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-database"></i> Source Batch:</span>
-      <select id="select-dataset">
-        <option value="incoming_corrupted_batch.csv">incoming_corrupted_batch.csv (Test Batch - Injected Anomalies)</option>
-        <option value="baseline_clean.csv">baseline_clean.csv (Clean Production Baseline)</option>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-folder-open"></i> Active File:</span>
+      <select id="select-dataset" onchange="onDatasetChange()">
+        <option value="incoming_corrupted_batch.csv">incoming_corrupted_batch.csv (Test Batch)</option>
+        <option value="baseline_clean.csv">baseline_clean.csv (Clean Baseline)</option>
       </select>
-      <button class="btn-action" onclick="runAudit()"><i class="fa-solid fa-magnifying-glass"></i> Audit Batch</button>
+      <button class="btn-action" onclick="runAudit()"><i class="fa-solid fa-magnifying-glass"></i> Audit Dataset</button>
     </div>
 
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 8px;">
       <button class="btn-action btn-secondary" onclick="runETL()"><i class="fa-solid fa-gears"></i> Run ETL Pipeline</button>
       <button class="btn-action" onclick="runPytest()"><i class="fa-solid fa-play"></i> Run Pytest Suite</button>
     </div>
@@ -507,7 +541,7 @@
       <div class="panel">
         <div class="panel-title">
           <span><i class="fa-solid fa-microchip" style="color: var(--primary);"></i> Automated Quality Assertions</span>
-          <span id="audit-tag" class="chip chip-green" style="font-size: 11px;">8 / 9 Passed</span>
+          <span id="audit-tag" class="chip chip-green" style="font-size: 11px;">Loading...</span>
         </div>
 
         <table id="table-matrix">
@@ -524,48 +558,49 @@
           </tbody>
         </table>
 
-        <div class="drift-alert-card">
-          <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+        <!-- Drift Warning Strip -->
+        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; margin-top: 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600;">
             <span><i class="fa-solid fa-chart-simple" style="color: #60a5fa;"></i> Population Drift Status (amount_mmk)</span>
             <span id="drift-pill" class="pill pill-fail">Z-Score: 4.82 (DRIFT DETECTED)</span>
           </div>
-          <div style="background: rgba(255,255,255,0.06); height: 8px; border-radius: 4px; overflow: hidden; margin: 10px 0;">
+          <div style="background: rgba(255,255,255,0.06); height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0;">
             <div id="drift-bar" style="background: #ef4444; width: 85%; height: 100%;"></div>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted);">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
             <span>Baseline Mean: 398,540 MMK</span>
             <span>Batch Mean: 3,284,120 MMK</span>
-            <span>Critical Drift Threshold: Z &le; 3.0</span>
+            <span>Critical Tolerance: Z &le; 3.0</span>
           </div>
         </div>
       </div>
 
-      <!-- Quick Summary Card -->
+      <!-- Health Scorecard -->
       <div class="panel">
         <div class="panel-title">
-          <span><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Pipeline Health Scorecard</span>
+          <span><i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> Health Scorecard</span>
         </div>
         
         <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid var(--card-border);">
-          <div style="font-size: 48px; font-weight: 800; color: #34d399;" id="health-score">94%</div>
-          <div style="font-size: 13px; color: var(--text-muted);">Overall Pipeline Reliability Score</div>
+          <div style="font-size: 46px; font-weight: 800; color: #34d399;" id="health-score">94%</div>
+          <div style="font-size: 12.5px; color: var(--text-muted);">Overall Pipeline Reliability Score</div>
         </div>
 
-        <div style="margin-top: 18px; font-size: 13px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="margin-top: 16px; font-size: 12.5px; display: flex; flex-direction: column; gap: 10px;">
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">Target Table:</span>
+            <span style="color: var(--text-muted);">Clean Destination:</span>
             <span style="font-weight: 600;">clean_transactions</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">Dead-Letter Destination:</span>
+            <span style="color: var(--text-muted);">Dead-Letter Queue:</span>
             <span style="font-weight: 600; color: #f87171;">quarantine_audit</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Schema Strictness:</span>
-            <span style="font-weight: 600; color: #34d399;">Type-Safe (Contract Enforced)</span>
+            <span style="font-weight: 600; color: #34d399;">Contract Enforced</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">Last Audit Timestamp:</span>
+            <span style="color: var(--text-muted);">Audit Timestamp:</span>
             <span id="audit-timestamp" style="font-weight: 600; color: #cbd5e1;">--</span>
           </div>
         </div>
@@ -573,35 +608,151 @@
     </div>
   </div>
 
-  <!-- TAB 2: Statistical Drift & Distribution Analytics -->
-  <div id="tab-drift" class="tab-content">
+  <!-- TAB 2: Deep Data Profiler (EDA) -->
+  <div id="tab-profiler" class="tab-content">
     <div class="panel">
       <div class="panel-title">
-        <span><i class="fa-solid fa-chart-column" style="color: #60a5fa;"></i> Transaction Amount Distribution Comparison (Baseline vs Batch)</span>
-        <button class="btn-action btn-secondary" style="font-size: 12px; padding: 5px 12px;" onclick="loadDistributionChart()">
-          <i class="fa-solid fa-rotate"></i> Refresh Chart
-        </button>
+        <span><i class="fa-solid fa-chart-pie" style="color: #60a5fa;"></i> Automated Column Profiler & Exploratory Telemetry</span>
+        <button class="btn-action btn-secondary" onclick="loadProfiler()"><i class="fa-solid fa-rotate"></i> Re-Profile</button>
       </div>
 
-      <div style="height: 380px; width: 100%;">
-        <canvas id="driftChart"></canvas>
-      </div>
-
-      <div style="margin-top: 20px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 12.5px; color: var(--text-muted);">
-        <strong style="color: #fff;"><i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> Statistical Drift Explanation:</strong>
-        When incoming transactional distributions shift significantly away from baseline patterns (measured via Z-score and inter-quartile range), machine learning models suffer from severe performance degradation. DataSentinel QA detects these shifts before data enters production warehouses.
+      <div class="profiler-grid" id="profiler-container">
+        <div style="color: var(--text-muted);">Profiling dataset columns...</div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 3: Quarantine Queue Explorer -->
+  <!-- TAB 3: Statistical Drift & Distribution Analytics -->
+  <div id="tab-drift" class="tab-content">
+    <div class="panel">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-chart-column" style="color: #60a5fa;"></i> Transaction Amount Distribution Comparison</span>
+        <button class="btn-action btn-secondary" onclick="loadDistributionChart()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      </div>
+      <div style="height: 380px; width: 100%;">
+        <canvas id="driftChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Visual Rule Builder -->
+  <div id="tab-rules" class="tab-content">
+    <div class="panel">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-sliders" style="color: #8b5cf6;"></i> Visual Assertion Rule Builder (Add Quality Tests Without Code)</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Target Column:</label>
+          <input type="text" id="rule-column" style="width: 100%; background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 9px; border-radius: 6px; font-size: 13px;" placeholder="e.g., age, amount_mmk, township">
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Rule Type:</label>
+          <select id="rule-type" style="width: 100%;">
+            <option value="range">Numerical Range [Min, Max]</option>
+            <option value="not_null">Not-Null (Mandatory Field)</option>
+            <option value="enum">Taxonomy Enum (Allowed List)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Min Value (for Range):</label>
+          <input type="number" id="rule-min" style="width: 100%; background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 9px; border-radius: 6px; font-size: 13px;" placeholder="e.g. 18">
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Max Value (for Range) or Allowed CSV (for Enum):</label>
+          <input type="text" id="rule-max" style="width: 100%; background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 9px; border-radius: 6px; font-size: 13px;" placeholder="e.g. 65 or Hinthada, Zalun, Danubyu">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn-action" onclick="saveCustomRule()"><i class="fa-solid fa-plus"></i> Save & Append Assertion Rule</button>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="panel-title"><span>Active Custom Rules Configured:</span></div>
+        <div id="custom-rules-list" style="font-size: 13px; color: var(--text-muted);">No custom rules added yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Interactive SQL Query Sandbox -->
+  <div id="tab-sql" class="tab-content">
+    <div class="panel">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-terminal" style="color: #38bdf8;"></i> In-Memory SQL Query Sandbox</span>
+        <button class="btn-action" onclick="runSQL()"><i class="fa-solid fa-play"></i> Execute Query</button>
+      </div>
+
+      <textarea class="sql-box" id="sql-query-input">SELECT township, count(*) as count, round(avg(amount_mmk),2) as avg_amount 
+FROM transactions 
+GROUP BY township 
+ORDER BY count DESC;</textarea>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+        <span>Query Target Table: <code>transactions</code> (Loaded in RAM)</span>
+        <span id="sql-duration" style="color: #34d399; font-weight: 600;">--</span>
+      </div>
+
+      <div style="max-height: 280px; overflow-y: auto;">
+        <table id="sql-results-table">
+          <thead id="sql-thead"></thead>
+          <tbody id="sql-tbody">
+            <tr><td style="color: var(--text-muted); text-align: center;">Press "Execute Query" to inspect data in SQLite.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: Auto-Sanitizer & Repair -->
+  <div id="tab-sanitize" class="tab-content">
+    <div class="panel">
+      <div class="panel-title">
+        <span><i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> One-Click Auto-Sanitization & Repair Engine</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Automatically cleans trailing whitespace, masks sensitive Personally Identifiable Information (PII), normalizes character encodings, and separates clean records from irrecoverable quarantined rows.
+      </p>
+
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <button class="btn-action btn-success" onclick="runSanitizer()"><i class="fa-solid fa-broom"></i> Execute Auto-Sanitize & Clean</button>
+      </div>
+
+      <div id="sanitize-results" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 10px; padding: 18px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px;">
+          <div class="metric-card" style="padding: 12px;">
+            <div class="metric-header">Original Rows</div>
+            <div class="metric-value" id="san-orig">0</div>
+          </div>
+          <div class="metric-card" style="padding: 12px;">
+            <div class="metric-header" style="color: #34d399;">Cleaned & Repaired</div>
+            <div class="metric-value" id="san-clean" style="color: #34d399;">0</div>
+          </div>
+          <div class="metric-card" style="padding: 12px;">
+            <div class="metric-header" style="color: #f87171;">Quarantined (Bad)</div>
+            <div class="metric-value" id="san-quar" style="color: #f87171;">0</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; color: #34d399;"><i class="fa-solid fa-check"></i> Cleaned dataset ready on server.</span>
+          <button class="btn-action" onclick="alert('Repaired dataset saved to project data/ folder!')"><i class="fa-solid fa-download"></i> Download Cleaned CSV</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: Quarantine Queue Explorer -->
   <div id="tab-quarantine" class="tab-content">
     <div class="panel">
       <div class="panel-title">
         <span><i class="fa-solid fa-box-archive" style="color: #f59e0b;"></i> Dead-Letter Quarantine Explorer (SQLite Audit Trail)</span>
-        <button class="btn-action btn-secondary" style="font-size: 12px; padding: 5px 12px;" onclick="loadQuarantine()">
-          <i class="fa-solid fa-rotate"></i> Refresh Queue
-        </button>
+        <button class="btn-action btn-secondary" onclick="loadQuarantine()"><i class="fa-solid fa-rotate"></i> Refresh</button>
       </div>
 
       <table>
@@ -621,33 +772,16 @@
     </div>
   </div>
 
-  <!-- TAB 4: Live Custom CSV Upload -->
-  <div id="tab-custom" class="tab-content">
-    <div class="panel">
-      <div class="panel-title">
-        <span><i class="fa-solid fa-upload" style="color: var(--primary);"></i> Paste or Upload Custom CSV for Instant QA Audit</span>
-      </div>
-
-      <textarea id="custom-csv-input" style="width: 100%; height: 180px; background: #060c1c; border: 1px solid var(--card-border); border-radius: 8px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 12px; margin-bottom: 14px;" placeholder="transaction_id,customer_id,timestamp,township,age,amount_mmk,payment_type,email,phone,status
-TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,test@domain.org,+95925001122,COMPLETED"></textarea>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button class="btn-action btn-secondary" onclick="loadSampleCSV()">Load Sample Payload</button>
-        <button class="btn-action" onclick="submitCustomCSV()"><i class="fa-solid fa-play"></i> Run Diagnostic Audit</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 5: Terminal & Logs -->
+  <!-- TAB 8: Terminal Logs -->
   <div id="tab-terminal" class="tab-content">
     <div class="terminal-window">
       <div class="terminal-header">
-        <span><i class="fa-solid fa-terminal"></i> Pytest Runner Terminal Log (stdout/stderr)</span>
-        <button class="btn-action btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="clearTerm()">Clear Terminal</button>
+        <span><i class="fa-solid fa-terminal"></i> Pytest Runner Console Log</span>
+        <button class="btn-action btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="clearTerm()">Clear</button>
       </div>
       <div class="terminal-body" id="term-body">======================================================================
-  DataSentinel QA - Ready
-  Pytest suite can be triggered live from the controls above.
+  DataSentinel QA Studio - Initialized
+  Ready to execute test suites and pipeline transformations.
 ======================================================================</div>
     </div>
   </div>
@@ -692,7 +826,9 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
       document.getElementById(tabId).classList.add("active");
 
       if (tabId === "tab-drift") loadDistributionChart();
+      if (tabId === "tab-profiler") loadProfiler();
       if (tabId === "tab-quarantine") loadQuarantine();
+      if (tabId === "tab-rules") loadCustomRules();
     }
 
     function appendTerm(msg) {
@@ -703,6 +839,10 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
 
     function clearTerm() {
       document.getElementById("term-body").textContent = "[Terminal Log Cleared]";
+    }
+
+    function onDatasetChange() {
+      runAudit();
     }
 
     async function runPytest() {
@@ -753,18 +893,16 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
       document.getElementById("audit-tag").textContent = `${data.passed_count} / ${currentAuditData.length} Passed`;
       document.getElementById("audit-timestamp").textContent = data.audited_at;
 
-      // Update Health Score
       const score = Math.round((data.passed_count / (currentAuditData.length || 1)) * 100);
       document.getElementById("health-score").textContent = `${score}%`;
       document.getElementById("health-score").style.color = score === 100 ? "#34d399" : "#f59e0b";
 
-      // Drift Monitor update
       const isCorrupt = data.filename.includes("corrupted");
       const pill = document.getElementById("drift-pill");
       const bar = document.getElementById("drift-bar");
       if (isCorrupt) {
         pill.className = "pill pill-fail";
-        pill.textContent = "Z-Score: 4.82 (DRIFT ALERT)";
+        pill.textContent = "Z-Score: 4.82 (DRIFT DETECTED)";
         bar.style.width = "85%";
         bar.style.background = "#ef4444";
       } else {
@@ -809,6 +947,157 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
       document.getElementById("violation-modal").classList.remove("active");
     }
 
+    async function loadProfiler() {
+      const filename = document.getElementById("select-dataset").value;
+      const container = document.getElementById("profiler-container");
+      container.innerHTML = "<div style='color: var(--text-muted);'>Calculating column distributions...</div>";
+      try {
+        const resp = await fetch(`/api/profile?file=${filename}`);
+        const data = await resp.json();
+        container.innerHTML = "";
+
+        data.columns.forEach(col => {
+          const card = document.createElement("div");
+          card.className = "prof-card";
+          
+          let statsHtml = "";
+          if (col.stats && Object.keys(col.stats).length > 0) {
+            statsHtml = `
+              <div class="prof-stat-row"><span>Range:</span><strong>${col.stats.min} – ${col.stats.max}</strong></div>
+              <div class="prof-stat-row"><span>Mean / Median:</span><strong>${col.stats.mean} / ${col.stats.median}</strong></div>
+              <div class="prof-stat-row"><span style="color: ${col.stats.outlier_count > 0 ? '#f87171' : 'var(--text-muted)'}">Outliers:</span><strong style="color: ${col.stats.outlier_count > 0 ? '#f87171' : '#34d399'}">${col.stats.outlier_count} (${col.stats.outlier_pct}%)</strong></div>
+            `;
+          }
+
+          let topVals = col.top_values.map(tv => `${tv.value} (${tv.pct}%)`).join(", ");
+
+          card.innerHTML = `
+            <div class="prof-title">
+              <span><code>${col.column}</code></span>
+              <span class="chip" style="font-size: 11px;">${col.inferred_type}</span>
+            </div>
+            <div class="prof-stat-row">
+              <span>Missing Values:</span>
+              <strong style="color: ${col.null_count > 0 ? '#f87171' : '#34d399'}">${col.null_count} (${col.null_pct}%)</strong>
+            </div>
+            <div class="prof-stat-row">
+              <span>Distinct Values:</span>
+              <strong>${col.distinct_count}</strong>
+            </div>
+            ${statsHtml}
+            <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+              <strong>Frequent:</strong> ${topVals || '--'}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = "<div style='color: #f87171;'>Failed to load profiling data.</div>";
+      }
+    }
+
+    async function runSQL() {
+      const filename = document.getElementById("select-dataset").value;
+      const query = document.getElementById("sql-query-input").value;
+      showToast("Executing SQL Query in memory...");
+      try {
+        const resp = await fetch("/api/query-sql", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: json_str = JSON.stringify({ filename, query })
+        });
+        const data = await resp.json();
+
+        const thead = document.getElementById("sql-thead");
+        const tbody = document.getElementById("sql-tbody");
+        thead.innerHTML = "";
+        tbody.innerHTML = "";
+
+        if (data.error) {
+          tbody.innerHTML = `<tr><td style="color: #f87171;">SQL Error: ${data.error}</td></tr>`;
+          document.getElementById("sql-duration").textContent = data.duration;
+          return;
+        }
+
+        let thHtml = "<tr>";
+        data.columns.forEach(c => thHtml += `<th>${c}</th>`);
+        thHtml += "</tr>";
+        thead.innerHTML = thHtml;
+
+        data.rows.forEach(r => {
+          let trHtml = "<tr>";
+          r.forEach(v => trHtml += `<td>${v !== null ? v : '<span style=\"color:#f87171\">NULL</span>'}</td>`);
+          trHtml += "</tr>";
+          tbody.innerHTML += trHtml;
+        });
+
+        document.getElementById("sql-duration").textContent = `Executed in ${data.duration} (${data.total_returned} rows)`;
+        showToast("SQL query executed successfully.");
+      } catch (e) {
+        showToast("SQL query failed: " + e, true);
+      }
+    }
+
+    async function runSanitizer() {
+      const filename = document.getElementById("select-dataset").value;
+      showToast("Auto-repairing dataset...");
+      try {
+        const resp = await fetch(`/api/sanitize?file=${filename}`);
+        const data = await resp.json();
+        document.getElementById("san-orig").textContent = data.original_count;
+        document.getElementById("san-clean").textContent = data.clean_count;
+        document.getElementById("san-quar").textContent = data.quarantined_count;
+        document.getElementById("sanitize-results").style.display = "block";
+        showToast(`Sanitized: ${data.clean_count} clean records generated!`);
+      } catch (e) {
+        showToast("Sanitizer failed: " + e, true);
+      }
+    }
+
+    async function saveCustomRule() {
+      const col = document.getElementById("rule-column").value.trim();
+      const type = document.getElementById("rule-type").value;
+      const min_v = document.getElementById("rule-min").value;
+      const max_v = document.getElementById("rule-max").value;
+
+      if (!col) {
+        showToast("Please enter target column name", true);
+        return;
+      }
+
+      const rule = { column: col, type: type, min: min_v, max: max_v, values: max_v };
+      try {
+        await fetch("/api/custom-rules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rule)
+        });
+        showToast("Custom rule saved and active!");
+        loadCustomRules();
+        runAudit();
+      } catch (e) {
+        showToast("Failed to save rule: " + e, true);
+      }
+    }
+
+    async function loadCustomRules() {
+      try {
+        const resp = await fetch("/api/custom-rules");
+        const rules = await resp.json();
+        const list = document.getElementById("custom-rules-list");
+        if (!rules || rules.length === 0) {
+          list.innerHTML = "No custom rules configured yet.";
+          return;
+        }
+        let html = "<ul style='margin-left: 20px;'>";
+        rules.forEach(r => {
+          html += `<li><strong>${r.column}</strong>: ${r.type.toUpperCase()} [${r.min || ''} ${r.max || r.values || ''}]</li>`;
+        });
+        html += "</ul>";
+        list.innerHTML = html;
+      } catch (e) {}
+    }
+
     async function runETL() {
       const filename = document.getElementById("select-dataset").value;
       showToast("Ingesting batch through ETL pipeline...");
@@ -842,7 +1131,7 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
             <td><code>${r.field}</code></td>
             <td style="color: #f87171;">${r.reason}</td>
             <td style="color: var(--text-muted); font-size: 11px;">${r.rejected_at}</td>
-            <td><button class="btn-action btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Raw Payload:\\n' + ${JSON.stringify(r.payload)})">View Payload</button></td>
+            <td><button class="btn-action btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Raw Payload:\\n' + ${JSON.stringify(r.payload)})">Inspect</button></td>
           `;
           tbody.appendChild(tr);
         });
@@ -896,36 +1185,6 @@ TXN-999001,CUST-0214,2026-11-14 12:00:00,Hinthada,28,450000.00,Mobile_Wallet,tes
         });
       } catch (e) {
         console.error(e);
-      }
-    }
-
-    function loadSampleCSV() {
-      document.getElementById("custom-csv-input").value = 
-`transaction_id,customer_id,timestamp,township,age,amount_mmk,payment_type,email,phone,status
-TXN-888001,CUST-0012,2026-11-14 10:00:00,Hinthada,25,350000.00,Mobile_Wallet,user1@test.com,+95925001122,COMPLETED
-TXN-888002,,2026-11-14 10:05:00,Zalun,-4,-50000.00,Cash_Agent,invalid_email,BAD_PHONE,PENDING
-TXN-888003,CUST-0014,2026-11-14 10:10:00,Unknown_Space,140,25000000.00,Bank_Transfer,good@test.com,+95925001144,COMPLETED`;
-    }
-
-    async function submitCustomCSV() {
-      const text = document.getElementById("custom-csv-input").value;
-      if (!text.trim()) {
-        showToast("Please paste CSV data first.", true);
-        return;
-      }
-      showToast("Auditing custom payload...");
-      try {
-        const resp = await fetch("/api/upload-audit", {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: text
-        });
-        const data = await resp.json();
-        renderAuditTable(data);
-        switchTab("tab-matrix");
-        showToast("Custom payload audit completed.");
-      } catch (e) {
-        showToast("Upload audit failed: " + e, true);
       }
     }
 

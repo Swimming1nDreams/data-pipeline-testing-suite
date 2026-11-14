@@ -1,7 +1,7 @@
 """
-DataSentinel QA - Interactive Web Server & REST API
-Enhanced with Live Pytest runner, Statistical Distribution Bins, Quarantine Explorer,
-and Custom CSV live audit engine.
+DataSentinel QA - Advanced Web Server & REST API Engine
+Supports Data Profiling, Custom Rule Engineering, SQL Sandbox,
+Auto-Sanitization, and Pytest execution.
 """
 
 import os
@@ -17,9 +17,13 @@ from urllib.parse import urlparse, parse_qs
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
+RULES_FILE = os.path.join(DATA_DIR, "custom_rules.json")
 
 from core.validator import DataValidator
 from core.pipeline import ETLPipeline, SCHEMA_CONTRACT, VALID_TOWNSHIPS, EMAIL_REGEX, PHONE_REGEX
+from core.profiler import DataProfiler
+from core.sanitizer import DataSanitizer
+from core.sql_sandbox import SQLSandbox
 
 class DataSentinelHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -34,6 +38,12 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             self.handle_run_pytest()
         elif path == "/api/audit":
             self.handle_audit(query)
+        elif path == "/api/profile":
+            self.handle_profile(query)
+        elif path == "/api/sanitize":
+            self.handle_sanitize(query)
+        elif path == "/api/custom-rules":
+            self.handle_get_rules()
         elif path == "/api/etl":
             self.handle_etl(query)
         elif path == "/api/quarantine-records":
@@ -49,9 +59,20 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/upload-audit":
             self.handle_upload_audit()
+        elif parsed.path == "/api/query-sql":
+            self.handle_sql_query()
+        elif parsed.path == "/api/custom-rules":
+            self.handle_save_rule()
         else:
             self.send_response(404)
             self.end_headers()
+
+    def _get_dataset_rows(self, filename):
+        filepath = os.path.join(DATA_DIR, filename)
+        if not os.path.exists(filepath):
+            return []
+        with open(filepath, "r", encoding="utf-8") as f:
+            return list(csv.DictReader(f))
 
     def handle_run_pytest(self):
         t0 = time.time()
@@ -69,23 +90,13 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
 
     def handle_audit(self, query):
         filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
-        filepath = os.path.join(DATA_DIR, filename)
+        rows = self._get_dataset_rows(filename)
 
-        if not os.path.exists(filepath):
-            self.send_json_response({"error": f"File {filename} not found"}, 404)
+        if not rows:
+            self.send_json_response({"error": f"File {filename} not found or empty"}, 404)
             return
 
-        rows = []
-        with open(filepath, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for r in reader:
-                rows.append(r)
-
-        base_path = os.path.join(DATA_DIR, "baseline_clean.csv")
-        base_rows = []
-        if os.path.exists(base_path):
-            with open(base_path, "r", encoding="utf-8") as f:
-                base_rows = list(csv.DictReader(f))
+        base_rows = self._get_dataset_rows("baseline_clean.csv")
 
         tests = [
             ("Schema Contract Verification", lambda: DataValidator.assert_schema_contract(rows, SCHEMA_CONTRACT)),
@@ -99,6 +110,25 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             ("Statistical Data Drift Test (MMK)", lambda: DataValidator.assert_no_statistical_drift(base_rows, rows, "amount_mmk", max_z_score=3.0))
         ]
 
+        # Apply any custom user-configured rules
+        if os.path.exists(RULES_FILE):
+            try:
+                with open(RULES_FILE, "r", encoding="utf-8") as rf:
+                    custom_rules = json.load(rf)
+                for cr in custom_rules:
+                    rule_type = cr.get("type")
+                    col = cr.get("column")
+                    if rule_type == "range":
+                        min_v, max_v = float(cr["min"]), float(cr["max"])
+                        tests.append((f"Custom Range [{col} in {min_v}-{max_v}]", lambda c=col, mn=min_v, mx=max_v: DataValidator.assert_numerical_range(rows, c, mn, mx)))
+                    elif rule_type == "not_null":
+                        tests.append((f"Custom Not-Null [{col}]", lambda c=col: DataValidator.assert_no_nulls(rows, [c])))
+                    elif rule_type == "enum":
+                        allowed = [x.strip() for x in cr["values"].split(",")]
+                        tests.append((f"Custom Enum [{col}]", lambda c=col, a=allowed: DataValidator.assert_category_enum(rows, c, a)))
+            except Exception as e:
+                pass
+
         results = []
         for name, fn in tests:
             r = fn()
@@ -107,7 +137,7 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
                 "passed": r.passed,
                 "message": r.message,
                 "violations_count": len(r.violations),
-                "sample_violations": r.violations[:8] # sample of failed rows
+                "sample_violations": r.violations[:8]
             })
 
         self.send_json_response({
@@ -118,6 +148,67 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             "failed_count": sum(1 for r in results if not r["passed"]),
             "audited_at": time.strftime("%Y-%m-%d %H:%M:%S")
         })
+
+    def handle_profile(self, query):
+        filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
+        rows = self._get_dataset_rows(filename)
+        profile = DataProfiler.profile_dataset(rows)
+        profile["filename"] = filename
+        self.send_json_response(profile)
+
+    def handle_sanitize(self, query):
+        filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
+        rows = self._get_dataset_rows(filename)
+        clean_rows, quarantined = DataSanitizer.sanitize_dataset(rows)
+        
+        # Save cleaned file for user download
+        clean_filename = f"repaired_{filename}"
+        clean_path = os.path.join(DATA_DIR, clean_filename)
+        if clean_rows:
+            with open(clean_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=list(clean_rows[0].keys()))
+                writer.writeheader()
+                writer.writerows(clean_rows)
+
+        self.send_json_response({
+            "original_count": len(rows),
+            "clean_count": len(clean_rows),
+            "quarantined_count": len(quarantined),
+            "cleaned_file": clean_filename,
+            "sample_cleaned": clean_rows[:5],
+            "sample_quarantined": quarantined[:5]
+        })
+
+    def handle_sql_query(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = json.loads(self.rfile.read(length).decode("utf-8"))
+        filename = body.get("filename", "incoming_corrupted_batch.csv")
+        query = body.get("query", "SELECT * FROM transactions LIMIT 10")
+        
+        rows = self._get_dataset_rows(filename)
+        res = SQLSandbox.execute_query(rows, query)
+        self.send_json_response(res)
+
+    def handle_get_rules(self):
+        if not os.path.exists(RULES_FILE):
+            self.send_json_response([])
+            return
+        with open(RULES_FILE, "r", encoding="utf-8") as f:
+            self.send_json_response(json.load(f))
+
+    def handle_save_rule(self):
+        length = int(self.headers.get("Content-Length", 0))
+        rule = json.loads(self.rfile.read(length).decode("utf-8"))
+        
+        rules = []
+        if os.path.exists(RULES_FILE):
+            with open(RULES_FILE, "r", encoding="utf-8") as f:
+                rules = json.load(f)
+        rules.append(rule)
+        with open(RULES_FILE, "w", encoding="utf-8") as f:
+            json.dump(rules, f, indent=2)
+            
+        self.send_json_response({"status": "saved", "rules": rules})
 
     def handle_etl(self, query):
         filename = query.get("file", ["incoming_corrupted_batch.csv"])[0]
@@ -160,7 +251,6 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         self.send_json_response({"records": records, "total": len(records)})
 
     def handle_distribution_data(self):
-        """Calculates histogram bins for Baseline vs Corrupted batch for Chart.js visualization."""
         base_path = os.path.join(DATA_DIR, "baseline_clean.csv")
         batch_path = os.path.join(DATA_DIR, "incoming_corrupted_batch.csv")
 
@@ -192,7 +282,6 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
 
         base_counts = bin_counts(base_amt)
         batch_counts = bin_counts(batch_amt)
-
         base_mean = round(sum(base_amt) / (len(base_amt) or 1), 2)
         batch_mean = round(sum(batch_amt) / (len(batch_amt) or 1), 2)
 
@@ -218,11 +307,7 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
         reader = csv.DictReader(lines)
         rows = list(reader)
 
-        base_path = os.path.join(DATA_DIR, "baseline_clean.csv")
-        base_rows = []
-        if os.path.exists(base_path):
-            with open(base_path, "r", encoding="utf-8") as f:
-                base_rows = list(csv.DictReader(f))
+        base_rows = self._get_dataset_rows("baseline_clean.csv")
 
         tests = [
             ("Schema Contract Verification", lambda: DataValidator.assert_schema_contract(rows, SCHEMA_CONTRACT)),
@@ -248,7 +333,7 @@ class DataSentinelHandler(SimpleHTTPRequestHandler):
             })
 
         self.send_json_response({
-            "filename": "Uploaded_Custom_Payload.csv",
+            "filename": "Custom_Uploaded_Payload.csv",
             "total_rows": len(rows),
             "results": results,
             "passed_count": sum(1 for r in results if r["passed"]),
@@ -284,13 +369,11 @@ def run_server(port=8082):
     server_address = ("127.0.0.1", port)
     httpd = HTTPServer(server_address, DataSentinelHandler)
     print("=" * 70)
-    print(f"  DataSentinel QA - Enhanced Web Server Running")
-    print(f"  URL: http://localhost:{port}")
+    print(f"  DataSentinel QA - Advanced Server Running on http://localhost:{port}")
     print("=" * 70)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\nShutting down server.")
         httpd.server_close()
 
 if __name__ == "__main__":
